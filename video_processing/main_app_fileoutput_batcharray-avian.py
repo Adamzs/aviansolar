@@ -71,7 +71,7 @@ def read_files(path, outpath, show_video, write_images):
             start = time.time()
             out_file.write("File valid, starting processing\n")
             out_file.flush()
-            #find_objects(path, file, fileName, outpath, show_video, write_images)
+            find_objects(path, file, fileName, outpath, show_video, write_images)
             delta = time.time() - start
             out_file.write("Took: " + str(delta) + " seconds to process video\n")
             out_file.flush()
