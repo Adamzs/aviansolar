@@ -128,7 +128,7 @@ class ObjDetector(object):
 #        if self.showImages == True:
 #            cv2.imshow('thresh', thresh)
 
-        contours, hierarchy = cv2.findContours(thresh,
+        _, contours, hierarchy = cv2.findContours(thresh,
                                                   cv2.RETR_EXTERNAL,
                                                   cv2.CHAIN_APPROX_SIMPLE)
 
@@ -136,8 +136,10 @@ class ObjDetector(object):
         centers = []  
         
 
-        height = 2160
-        width = 3840
+        height = frame.shape[0]
+        width = frame.shape[1]
+        #height = 2160
+        #width = 3840
         #areas = self.getLargeAreas(contours, 720, 1280)
         contourRects = []
         for cnt in contours:

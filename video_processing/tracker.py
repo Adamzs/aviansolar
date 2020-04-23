@@ -69,13 +69,16 @@ class Tracker(object):
         uypt = int(cenY - 100)
         lypt = int(uypt + 200)
 
+        height = frame.shape[0]
+        width = frame.shape[1]
+
         if uxpt < 0 or lxpt < 0 or uypt < 0 or lypt < 0:
             return []
         
-        if uxpt > 3840 or lxpt > 3840:
+        if uxpt > width or lxpt > width:
             return []
         
-        if uypt > 2160 or lypt > 2160:
+        if uypt > height or lypt > height:
             return []
         
         cropped_frame = frame[uypt:lypt, uxpt:lxpt]

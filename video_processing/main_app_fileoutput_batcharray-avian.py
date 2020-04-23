@@ -4,6 +4,7 @@ import copy
 import os
 import sys
 import time
+import argparse
 import pandas as pd
 from obj_detector import ObjDetector
 from tracker import Tracker
@@ -27,11 +28,11 @@ def calc_angle(dx, dy):
         return adj - 360
     return adj        
 
-def find_objects(path, file, filename, outpath):
+def find_objects(path, file, filename, outpath, showImages, writeImages):
     cap = cv2.VideoCapture(os.path.join(path, file))
     storeImages = True
-    writeImages = True
-    showImages = False
+    #writeImages = True
+    #showImages = False
 
     detector = ObjDetector(showImages, 200)
     tracker = Tracker(900, 7, 150, 100, storeImages, writeImages, filename, outpath)
@@ -56,41 +57,45 @@ def find_objects(path, file, filename, outpath):
     cap.release()
     
 
-def read_files(path, outpath):
+def read_files(path, outpath, show_video, write_images):
     for filePath in sorted(os.listdir(path)):
         file = os.path.join(path, filePath)
-        print("Attempting to process file: " + file)
+        out_file.write("Attempting to process file: " + file + "\n")
         if os.path.isdir(file):
             read_files(file, outpath)        
         splitPath = os.path.splitext(filePath)
         fileName = splitPath[0]
         fileExt = splitPath[1]
         if fileExt in [".mp4", ".MP4", ".MOD", "mod", ".MTS", ".mts", ".mkv"]:
-            #imagePath = os.path.join(path, filePath)
             start = time.process_time()
-            print("File valid, starting processing")
-            find_objects(path, file, fileName, outpath)
+            out_file.write("File valid, starting processing\n")
+            find_objects(path, file, fileName, outpath, show_video, write_images)
             delta = time.process_time() - start
-            print("Took: " + str(delta) + " seconds to process video")
-            #print(imagePath)
-    print("Done with all files in directory")
+            out_file.write("Took: " + str(delta) + " seconds to process video\n")
+    out_file.write("Done with all files in directory\n")
 
 
 if __name__ == "__main__":
-    if (len(sys.argv) < 2):
-        print("no param index specified, exiting")
-    else:
-        arg = int(sys.argv[1])
-        print("using file index " + str(arg))
-        #params_file = pd.read_csv("/project/msca/projects/dspotter/uasvideos/dirs_list.csv")
-        params_file = pd.read_csv("D:\\AvianSolarData\\videos\\dirs_list.csv")
-        params = params_file.loc[params_file['Index'] == arg]
+    parser = argparse.ArgumentParser()
+    parser.add_argument("dirlist_file", help="The file with a list of the sub directories to process")
+    parser.add_argument("videos_dir", help="The path to the top level folder where the list of video directories are")
+    parser.add_argument("output_dir", help="The path to the output folder to use if writing out moving object images")
+    parser.add_argument("dir_index", type=int, help="The index of the directory of videos to process. Matches a row in the dirlist file")
+    parser.add_argument("-show_video", action="store_true", help="Should the video be displayed while processing?")
+    parser.add_argument("-write_images", action="store_true", help="Should images of the moving objects be written to disk?")
 
+    args = parser.parse_args()
+    out_filename = os.path.join(args.output_dir, "processing_log.txt")
+    with open(out_filename, 'w') as out_file:
+        arg = args.dir_index
+        out_file.write("using file index " + str(arg) + "\n")
+        params_file = pd.read_csv(args.dirlist_file)
+        params = params_file.loc[params_file['Index'] == arg]
+        out_file.write("show_video = " + str(args.show_video) + "\n")
+        out_file.write("write_images = " + str(args.write_images) + "\n")
         if (params.size > 0):
             target = params['Directory'].iloc[0]
-            #path = os.path.join('/project/msca/projects/dspotter/uasvideos', target)
-            path = os.path.join('D:\\AvianSolarData\\videos', target)
-            #outpath = os.path.join('/scratch/midway2/azs/image-output', target)
-            outpath = os.path.join('D:\\AvianSolarData\\videos\\image_output', target)
-            read_files(path, outpath)
-        print("Done all")
+            path = os.path.join(args.videos_dir, target)
+            outpath = os.path.join(args.output_dir, target)
+            read_files(path, outpath, args.show_video, args.write_images)
+        out_file.write("Done all\n")
