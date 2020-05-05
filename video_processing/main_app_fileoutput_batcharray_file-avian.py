@@ -57,13 +57,9 @@ def find_objects(file, filename, outpath, showImages, writeImages):
     cap.release()
     
 
-def read_files(file, outpath, show_video, write_images):
+def read_files(file, fileName, fileExt, outpath, show_video, write_images):
     out_file.write("Attempting to process file: " + file + "\n")
     out_file.flush()
-    splitPath = os.path.splitext(file)
-    fileName = os.path.basename(splitPath[0])
-    print("fileName = " + fileName)
-    fileExt = splitPath[1]
     if fileExt in [".mp4", ".MP4", ".MOD", "mod", ".MTS", ".mts", ".mkv"]:
         start = time.time()
         out_file.write("File valid, starting processing\n")
@@ -102,10 +98,17 @@ if __name__ == "__main__":
         rel_outdir = os.path.dirname(rel_video_file)
         full_path_output_dir = os.path.join(args.output_dir, rel_outdir)
         print("output directory = " + full_path_output_dir)
-        if not os.path.exists(full_path_output_dir):
-            os.makedirs(full_path_output_dir)
-        out_filename = os.path.join(full_path_output_dir, "processing_log.txt")
+        splitPath = os.path.splitext(full_path_video_file)
+        fileName = os.path.basename(splitPath[0])
+        print("fileName = " + fileName)
+        fileExt = splitPath[1]
+        out_path = os.path.join(full_path_output_dir, fileName)
+        if not os.path.exists(out_path):
+            try:
+                os.makedirs(out_path)
+            except FileExistsError:
+                pass
+            
+        out_filename = os.path.join(out_path, "processing_log.txt")
         with open(out_filename, 'w') as out_file:
-            read_files(full_path_video_file, full_path_output_dir, args.show_video, args.write_images)
-            out_file.write("Done all\n")
-            out_file.flush()
+            read_files(full_path_video_file, fileName, fileExt, full_path_output_dir, args.show_video, args.write_images)
