@@ -89,20 +89,18 @@ if __name__ == "__main__":
     parser.add_argument("-write_images", action="store_true", help="Should images of the moving objects be written to disk?")
 
     args = parser.parse_args()
-    out_filename = os.path.join(args.output_dir, "processing_log.txt")
-    with open(out_filename, 'w') as out_file:
-        arg = args.dir_index
-        out_file.write("using file index " + str(arg) + "\n")
-        out_file.flush()
-        params_file = pd.read_csv(args.dirlist_file)
-        params = params_file.loc[params_file['Index'] == arg]
-        out_file.write("show_video = " + str(args.show_video) + "\n")
-        out_file.write("write_images = " + str(args.write_images) + "\n")
-        out_file.flush()
-        if (params.size > 0):
-            target = params['Directory'].iloc[0]
-            path = os.path.join(args.videos_dir, target)
-            outpath = os.path.join(args.output_dir, target)
+    arg = args.dir_index
+    print("using file index " + str(arg) + "\n")
+    params_file = pd.read_csv(args.dirlist_file)
+    params = params_file.loc[params_file['Index'] == arg]
+    if (params.size > 0):
+        target = params['Directory'].iloc[0]
+        path = os.path.join(args.videos_dir, target)
+        outpath = os.path.join(args.output_dir, target)
+        if not os.path.exists(outpath):
+            os.makedirs(outpath)
+        out_filename = os.path.join(outpath, "processing_log.txt")
+        with open(out_filename, 'w') as out_file:
             read_files(path, outpath, args.show_video, args.write_images)
-        out_file.write("Done all\n")
-        out_file.flush()
+            out_file.write("Done all\n")
+            out_file.flush()
