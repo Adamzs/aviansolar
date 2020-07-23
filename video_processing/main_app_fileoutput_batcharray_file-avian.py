@@ -35,11 +35,11 @@ def find_objects(file, filename, outpath, showImages, writeImages):
     #showImages = False
 
     detector = ObjDetector(showImages, 200)
-    tracker = Tracker(900, 7, 150, 100, storeImages, writeImages, filename, outpath)
+    tracker = Tracker(900, 10, 150, 100, storeImages, writeImages, filename, outpath)
     
     if showImages == True:
         cv2.namedWindow('image', cv2.WINDOW_NORMAL)
-        cv2.resizeWindow('image', 800, 800)
+        cv2.resizeWindow('image', 1920, 1080)
 
     count = 1
     while(True):
@@ -48,12 +48,14 @@ def find_objects(file, filename, outpath, showImages, writeImages):
             break
 
         orig_frame = copy.copy(frame)
-
+    
         centers = detector.findObjects(frame)
-
+    
         tracker.updateTracks(centers, orig_frame, count)
-        print('processed frame: ' + str(count))# + " frame size = " + str(len(frame)))
+            
+        print('processed frame: ' + str(count) + ", num tracks = " + str(len(tracker.tracks)))# + " frame size = " + str(len(frame)))
         count += 1
+        
     cap.release()
     
 
