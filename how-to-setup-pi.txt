@@ -1,0 +1,60 @@
+First burn a raspberry pi ubuntu image to an sd card using the imager program.  I chose a 64 bit server version.
+
+Then set it up so it auto-mounts an external NTFS drive.  Follow these instructions: https://raspberrypi.stackexchange.com/questions/41959/automount-various-usb-stick-file-systems-on-jessie-lite
+-- leave out the fsblk stuff in both sections
+-- remove sync from ___
+-- I had to do the stuff at the bottom with usbmount.rules
+
+Then set up an NFS server following these instructions: https://www.tecmint.com/install-nfs-server-on-ubuntu/
+-- the directory i shared was /media/usb
+-- I put 10.0.0.0/24 for the subnet access
+-- I added no_root_squash to the options
+-- skip the firewall section (we don't have a firewall enabled)
+
+Then set up a dhcp server on the pi
+Make the pi have a static ip on eth0: https://www.tecmint.com/configure-network-static-ip-address-in-ubuntu/
+this is what I added to the file /etc/netplan/50-cloud-init.yaml
+network:
+    ethernets:
+        eth0:
+            dhcp4: no
+            dhcp6: no
+            addresses: [10.0.0.86/24]
+            gateway4: 10.0.0.1
+            nameservers:
+                addresses: [8.8.8.8,8.8.4.4]
+    version: 2
+
+Follow these instructions:
+https://www.tecmint.com/install-dhcp-server-in-ubuntu-debian/
+
+-- added 
+INTERFACESv4="eth0"
+INTERFACESv6="eth0"
+to /etc/default/isc-dhcp-server
+
+-- added these entries to /etc/dhcpd.conf
+subnet 10.0.0.0 netmask 255.255.255.0 {
+   option routers 10.0.0.1;
+   option subnet-mask 255.255.255.0;
+   range dynamic-bootp 10.0.0.10 10.0.0.254;
+}
+
+-- Set up dhcp to tell it to assign 10.0.0.86 to the pi - not sure this step is necessary since we gave it a static ip above
+-- note the mac address will need to be updated here with the mac addres of the eth0 port on the pi
+host ubuntu-node {
+   hardware ethernet dc:a6:32:50:c3:51;
+   fixed-address 10.0.0.86;
+}
+
+
+
+
+On the DNNCam edit the file in ___ to have the mount command at the start:
+sudo mount 10.0.0.86:/media/usb /media
+
+
+sudo nmcli radio wifi on
+or off
+sudo nmtui
+

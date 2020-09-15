@@ -97,7 +97,7 @@ class ObjDetector(object):
             contourRects.append(r)
         return contourRects
 
-    def findObjects(self, frame):
+    def findObjects(self, frame, tracker):
         expandAmount = 100
         minArea1 = 75
         
@@ -171,6 +171,17 @@ class ObjDetector(object):
                 centers.append(np.round(b))
 
         if self.showImages == True:
+            for i in range(len(tracker.tracks)):
+                if tracker.tracks[i].firm_track_count > 7:
+                    for j in range(len(tracker.tracks[i].trace)-1):
+                        if j < 1:
+                            x1, y1 = tracker.tracks[i].trace[j]
+                            continue
+                        x2, y2 = tracker.tracks[i].trace[j + 1]
+                        cv2.line(frame, (x1, y1), (x2, y2), (255,0,0), 5)
+                        x1 = x2
+                        y1 = y2
+
             cv2.imshow('image', frame)
             cv2.waitKey(1)
         

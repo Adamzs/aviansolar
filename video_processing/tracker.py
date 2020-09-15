@@ -207,7 +207,7 @@ class Tracker(object):
                         trajDiff = np.abs(priorTrejectory - trajectoryToDetected)
                         if trajDiff > 180:
                             trajDiff = np.abs(trajDiff - 360)
-                        if DEBUG:
+                        if self.DEBUG:
                             print(str(frame_num) + "-" + str(self.tracks[i].track_id) + ", " +
                                   str(lastX) + ", " + str(lastY) + ", " + 
                                   str(predX) + ", " + str(predY) + ", " + 

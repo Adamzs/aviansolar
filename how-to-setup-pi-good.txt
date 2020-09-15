@@ -1,0 +1,113 @@
+1. Make the pi have a static ip on eth0: 
+(for reference https://linuxconfig.org/how-to-configure-static-ip-address-on-ubuntu-20-04-focal-fossa-desktop-server)
+edit the file sudo nano /etc/netplan/50-cloud-init.yaml
+network:
+    ethernets:
+        eth0:
+            dhcp4: false
+            addresses: [10.0.0.86/24]
+            gateway4: 10.0.0.1
+            nameservers:
+                addresses: [8.8.8.8,8.8.4.4]
+    version: 2
+
+run this:
+sudo netplan apply
+
+2. Set the pi up so it auto-mounts an external NTFS drive.  Follow these instructions: https://raspberrypi.stackexchange.com/questions/41959/automount-various-usb-stick-file-systems-on-jessie-lite
+-- leave out the fsblk stuff in both sections
+-- remove sync from MOUNTOPTIONS
+sudo apt-get install usbmount
+sudo apt-get install ntfs-3g
+sudo nano /etc/usbmount/usbmount.conf
+MOUNTPOINTS="/media/usb0 media/usb1 ...
+FILESYSTEMS="vfat ntfs ext2 ext3 ext4 hfsplus"
+MOUNTOPTIONS="noexec,nodev,noatime,nodiratime"
+FS_MOUNTOPTIONS="-fstype=ntfs-3g,nls==utf8,umask=007,gid=46 -fstype=vfat,gid=1000,uid=1000,umask=007"
+
+-- I had to do the stuff at the bottom with usbmount.rules
+sudo nano /etc/udev/rules.d/usbmount.rules
+KERNEL=="sd*", DRIVERS=="sbp2",         ACTION=="add",  PROGRAM="/bin/systemd-escape -p --template=usbmount@.service $env{DEVNAME}", ENV{SYSTEMD_WANTS}+="%c"
+KERNEL=="sd*", SUBSYSTEMS=="usb",       ACTION=="add",  PROGRAM="/bin/systemd-escape -p --template=usbmount@.service $env{DEVNAME}", ENV{SYSTEMD_WANTS}+="%c"
+KERNEL=="ub*", SUBSYSTEMS=="usb",       ACTION=="add",  PROGRAM="/bin/systemd-escape -p --template=usbmount@.service $env{DEVNAME}", ENV{SYSTEMD_WANTS}+="%c"
+KERNEL=="sd*",                          ACTION=="remove",       RUN+="/usr/share/usbmount/usbmount remove"
+KERNEL=="ub*",                          ACTION=="remove",       RUN+="/usr/share/usbmount/usbmount remove"
+
+sudo nano /etc/systemd/system/usbmount@.service
+[Unit]
+BindTo=%i.device
+After=%i.device
+
+[Service]
+Type=oneshot
+TimeoutStartSec=0
+Environment=DEVNAME=%I
+ExecStart=/usr/share/usbmount/usbmount add
+RemainAfterExit=yes
+
+Turn off pi, plug in external hard drive then plug back in.  After sshing into it the drive should be mounted on /media/usb 
+
+Then set up an NFS server following these instructions: https://www.tecmint.com/install-nfs-server-on-ubuntu/
+ubuntu@ubuntu:~$ sudo apt-get install nfs-kernel-server
+ubuntu@ubuntu:~$ sudo chown -R nobody:nogroup /media/usb
+ubuntu@ubuntu:~$ sudo chmod 777 /media/usb
+ubuntu@ubuntu:~$ sudo nano /etc/exports
+/media/usb      10.0.0.0/24(rw,sync,no_subtree_check,no_root_squash)
+
+ubuntu@ubuntu:~$ sudo exportfs -a
+ubuntu@ubuntu:~$ sudo systemctl restart nfs-kernel-server
+
+-- the directory i shared was /media/usb
+-- I put 10.0.0.0/24 for the subnet access
+-- I added no_root_squash to the options
+-- skip the firewall section (we don't have a firewall enabled)
+
+
+Then set up a dhcp server on the pi
+Follow these instructions:
+https://devtutorial.io/how-to-setup-dhcp-server-in-ubuntu-server-20-04.html
+
+sudo apt-get install isc-dhcp-server
+sudo nano /etc/dhcp/dhcpd.conf
+
+-- added these entries to /etc/dhcpd.conf
+subnet 10.0.0.0 netmask 255.255.255.0 {
+   option routers 10.0.0.1;
+   option subnet-mask 255.255.255.0;
+   range 10.0.0.10 10.0.0.254;
+}
+
+skip section for reserve ip address
+
+sudo service isc-dhcp-server restart
+
+
+
+------------bad------------------
+
+
+https://www.tecmint.com/install-dhcp-server-in-ubuntu-debian/
+
+-- added 
+INTERFACESv4="eth0"
+INTERFACESv6="eth0"
+to /etc/default/isc-dhcp-server
+
+-- Set up dhcp to tell it to assign 10.0.0.86 to the pi - not sure this step is necessary since we gave it a static ip above
+-- note the mac address will need to be updated here with the mac addres of the eth0 port on the pi
+host ubuntu-node {
+   hardware ethernet dc:a6:32:50:c3:51;
+   fixed-address 10.0.0.86;
+}
+
+
+
+
+On the DNNCam edit the file in ___ to have the mount command at the start:
+sudo mount 10.0.0.86:/media/usb /media
+
+
+sudo nmcli radio wifi on
+or off
+sudo nmtui
+

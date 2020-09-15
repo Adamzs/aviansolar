@@ -1,0 +1,13 @@
+Figure out IP of camera
+ssh into it using boulderai/baidnncam
+
+info here: http://docs.boulderai.com/dev/devCam_quickstart/
+
+go to folder webcameratester
+sudo ./run.sh
+
+5. Now, you can use a browser to view the web page:
+http://<DEVICE IP>:5000/test
+
+6. Alternatively, you can open the stream in VLC:
+rtsp://<DEVICE_IP>:8554/test

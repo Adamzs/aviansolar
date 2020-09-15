@@ -1,0 +1,58 @@
+1. Setup DNNCam
+a. set correct focus, zoom, iris
+b. set up to record video on startup to network drive
+
+2. Setup Raspberry Pi
+a. burn raspberry pi os to micro sd card (32Gb cards)
+b. configure to auto-mount usb drive
+b. configure to share network drive
+c. set up dhcp server
+d. configure static ip
+
+
+
+1.a.
+Place DNNCam in a location where there is a large area to focus on (things both far away and close up). 
+Hook up the DNNCam to a wired network that supports DHCP. (I do this from my home network because Argonne's network is not good with this)  
+Figure out the IP address assigned to the camera and then SSH into it in 2 terminals.  (username: boulderai, password: baidnncam)  
+In one terminal run command:
+/home/boulderai/webcameratester/direct_streamer "nvarguscamerasrc ! video/x-raw(memory:NVMM), width=3840, height=2160, format=(string)NV12, framerate=60/1 ! nvvidconv ! video/x-raw, width=(int)3840, height=(int)2160, format=(string)NV12 ! omxh265enc preset-level=3 bitrate=12000000  ! rtph265pay name=pay0 pt=96"
+
+On desktop open VLC media player and select Media->Open Network Stream.
+Enter: rtsp://10.0.0.4:8554/test (changing the ip address to the ip address of the DNNCam)
+
+In the other terminal window that is sshed into the dnncam go to the webcameratester folder.
+Use the lensDriver utility to adjust the focus, iris and zoom to make the video stream in VLC media player look clear
+sudo ./lensDriver
+focusup 10 or focusdown 10
+zoomup 10 or zoomdown 10
+
+Currently there is no systematic way to get good settings for this.  
+
+zoomup as far as you can go then back down 200
+focusdown a lot to focus
+irisup as far as you can go (which is opening up the iris) - then go down until brightness is normal
+
+
+
+1.b.
+SSH in to dnncam
+In home directory clone the git repo: git clone https://github.com/Adamzs/aviansolar.git
+cd to the aviansolar/camera_files directory
+Do what it says to do in the README.md file
+
+
+2.a.
+Download the raspberry pi imager utility from: https://www.raspberrypi.org/downloads/
+Run it and click the "CHOOSE OS" button
+Select Ubuntu 20.04.1 LTS - 64-bit server OS for arm64 architectures
+Then choose the SD card to write to
+Then click WRITE
+
+When finished remove micro sd card from computer and put into raspberry pi
+Connect the pi to a wired network connection and power on
+Find out ip of pi and ssh into it - username: ubuntu, password: ubuntu
+You will be prompted to change the password, set it to: aviansolar
+
+2.b-d.
+Follow document how-to-setup-pi.txt

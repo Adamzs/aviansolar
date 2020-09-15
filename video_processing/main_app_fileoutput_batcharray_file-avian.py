@@ -47,11 +47,12 @@ def find_objects(file, filename, outpath, showImages, writeImages):
         if ret == False:
             break
 
-        orig_frame = copy.copy(frame)
+        if count > 0:
+            orig_frame = copy.copy(frame)
     
-        centers = detector.findObjects(frame)
+            centers = detector.findObjects(frame, tracker)
     
-        tracker.updateTracks(centers, orig_frame, count)
+            tracker.updateTracks(centers, orig_frame, count)
             
         print('processed frame: ' + str(count) + ", num tracks = " + str(len(tracker.tracks)))# + " frame size = " + str(len(frame)))
         count += 1
