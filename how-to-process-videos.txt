@@ -1,0 +1,70 @@
+Upload new set of videos: Use Globus
+1. Install globus connect personal on your computer: https://www.globus.org/globus-connect-personal (make sure to share the directory of the video files you want to transfer)
+2. To to https://www.globus.org and Log In - choose Argonne National Laboratory for "existing organizational login"
+3. After logged in make sure you are on "File Manager" section
+4. On left side of screen click on Search and type lcrc - Select lcrc#dtn_bebop
+5. This will have you log in to lcrc (I think)
+6. Once you are logged in in the Path box on the LCRC DTN side type: /lcrc/project/aviansolar
+7. Double click on avian-solar-data and then double click on videos folder
+8. Create a new folder using the format year-month-day
+9. On the right side of the screen open the directory on your local computer where the videos files are
+10. Select the camera directories you want to transfer on the right side (like dnncam1 and dnncam2) and then Start at the bottom
+This will start the transfer in the background and could take some time.  To check on progress click the "ACTIVITY" icon on the left side menu bar.
+
+After videos are uploaded, here is what to do to process them:
+1. Go to the day directory of the new data, for example /lcrc/project/aviansolar/avian-solar-data/videos/2020-05-13-bldg-372
+2. Create the files_list.csv file in there (See HOWTO Step 2 below)
+3. Create the collection of sbatch files.  Currently LCRC limits us to 100 parallel jobs in the queue at a time, so you needs an sbatch file for every 100 videos.  (so if we have 223 videos you will need 3 sbatch files, 1 for 1-100, 1 for 101-200, and 1 for 201-223) (See HOWTO Step 3 below)
+4. Go to the video_processing directory of aviansolar code directory: this is at /lcrc/project/aviansolar/aviansolar/video_processing
+5. Execute each sbatch file one at a time, waiting for the prior to complete (See HOWTO Step 5 below)
+
+HOWTO Step 2:
+1. Go to the /lcrc/project/aviansolar/avian-solar-data/videos directory
+2. If we are using as an example, run this command: find 2020-05-13-bldg-372/ -mindepth 2 -type f -name *.mkv > 2020-05-13-bldg-372/files_list.csv
+3. Download the 2020-05-13-bldg-372/file_list.csv file to your computer
+4. Open it in excel
+5. Add a column to the left side and in that column create an incrementing index for every row with a filename (starting the index at 1)
+6. Add a header row: "Index, Directory"
+7. Upload the file back to the 2020-05-13-bldg-372 directory
+(NOTE: a python script could be written to create this file that would avoid all these steps, but I haven't gotten around to it yet)
+
+HOWTO Step 3:
+1. Copy the sbatch file from an existing directory and modify it for the new one
+2. Run: cp 2019-06-26-bldg-372/vidprocess_array_files1.sbatch 2020-05-13-bldg-372/.
+3. Modify 2 things in the file:
+a. The line: #SBATCH --array=1-100
+The 1-100 needs to be changed to what you have.  Assuming you have more than 223 videos in your files_list.csv the first one will be 1-100, and the second will be 101-200, and the third will be 201-223
+b. The python execution line at the bottom will need the directory of the files_list.csv file update.  Just replace 2019-06-26-bldg-372 with 2020-05-13-bldg-372
+
+HOWTO Step 5:
+1. In the video_processing directory run:
+sbatch /lcrc/project/aviansolar/avian-solar-data/videos/2020-05-13-bldg-372/vidprocess_array_files.sbatch
+2. Check to see if the jobs are running with:
+squeue --user <username>
+
+
+
+After video is processed:
+1. Make annotations.csv file for each day and camera directory (eg 2019-06-26-bldg-372/dnncam2/) (See HOWTO Step 1 below)
+2. Copy over to public_html directory (See HOWTO Step 2 below)
+
+
+HOWTO Step 1:
+1. Go to "image_data" directory
+2. Find day of data that was process, for example 2019-06-21-bldg-372, and go to that directory
+3. Go into one of the camera directories, in our example go to dnncam1
+4. Run this command: find . -mindepth 2 -type d > annotations.csv
+This will create the annotations.csv file that will be used for annotating.
+5. Add this text to the first line of the file: "directory,bird,cable,panel,plant,car,human,other animal,insect,aircraft,other,unknown,fly over above,fly over reflection,fly through,perch on panel,land on ground,perch in background,collision"
+You can either use a text editor like nano or vi to paste it in, or you can use sed from the command line like this:
+sed -i '1idirectory,bird,cable,panel,plant,car,human,other animal,insect,aircraft,other,unknown,fly over above,fly over reflection,fly through,perch on panel,land on ground,perch in background,collision' annotations.csv
+
+HOWTO Step 2:
+1. First create the date directory in public_html if it doesn't already exist, in our example: 
+mkdir /lcrc/project/aviansolar/public_html/2019-06-21-bldg-372
+2. Then recursively copy the camera directory over, in our example: 
+cp -r /lcrc/project/aviansolar/avian-solar-data/image_data/2019-06-21-bldg-372/dnncam1 /lcrc/project/aviansolar/public_html/2019-06-21-bldg-372/.
+3. Set the permissions on the copied directory to public: 
+chmod -R 755 /lcrc/project/aviansolar/public_html/2019-06-21-bldg-372/dnncam1
+
+
