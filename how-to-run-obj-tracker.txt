@@ -1,0 +1,33 @@
+HOWTO - Run Object detection and tracking algorithm with visual output
+
+1. Clone github repo: https://github.com/Adamzs/aviansolar.git
+2. Download a video file: use this one for an example "video-00002-2020_04_26_11_57_51.mkv" - shared on box here: https://anl.box.com/s/3s7zwsvbq7x1s5ozzfkqdka6c32rvwzg
+3. Install Anaconda3 on your computer: https://www.anaconda.com/products/individual
+4. Create a new conda environment and install necessary packages
+5. Set up directory structure and run code
+
+
+
+Step 4 HOWTO:
+1. Run Anaconda3->Anaconda Prompt
+2. create environment aviansolar with: conda create --name aviansolar
+3. activate aviansolar environment with: activate aviansolar
+4. install packages in the aviansolar environment: 
+	a. conda install numpy
+	b. conda install pandas
+	c. conda install scipy
+	d. conda install -c conda-forge opencv=3.4.2
+	(3.4.2 is the version of opencv I have set up on LCRC, we could upgrade to 4.5 at some point, but for now the code works with 3.4.2)
+
+Step 5 HOWTO:
+1. create a directory structure similar to what is on LCRC with example video
+	a. create a directory named "avian-solar-data"
+	b. in that folder create two folders named "videos" and "images"
+	c. in the videos folder create a folder named "today"
+	d. put example video in the today directory
+2. go to the video_processing folder in the location where you cloned the git repository
+3. edit the files_list.cv file to have a row pointing to your example video file
+	a. I was already testing with that file so there is already a row for it in the files_list.csv file checked in to the repo.  It is index 8
+4. run the object tracker with the show_video flag: (update the paths for your computer)
+python main_app_fileoutput_batcharray_file-avian.py -show_video -write_images files_list.csv C:\Users\szymanski\aviansolar-testdata\videos C:\Users\szymanski\aviansolar-testdata\images 8
+
