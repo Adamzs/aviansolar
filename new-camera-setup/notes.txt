@@ -1,0 +1,45 @@
+The new v2 camera setup involves using docker to mount the drive and then a systemd service to start the recording at boot
+
+(For reference, here is the guide I used to create a systemd service: https://www.linode.com/docs/guides/start-service-at-boot/)
+
+First need to configure a docker volume for the network drive on the pi.  Run:
+docker volume create --driver local --opt type=nfs --opt o=addr=10.0.0.86 --opt device=:/media/usb mynfs
+Also create the directory to mount on. Run:
+mkdir /data/mount/nfs
+
+Now when we start our docker container we can tell it to mount "mynfs"
+
+Next we have to build the docker container for mounting the drive.  In the repo there is a directory aviansolar/new-camera-setup/drive-mount, copy that to: /data/bai-edge-sdk/
+then run the build-docker.sh file in there.  That will create a container named "drive-mount".
+
+The file test_service.sh is what we will run on boot using systemd.  In that file we start the docker container with mynfs and then start the gstreamer utility.
+
+Copy the file aviansolar/new-camera-setup/test_service.sh to /usr/bin/ and make sure it is executable (chmod a+x)
+
+Create the boot counter file. Create a file named bcount.txt in the /data directory and put a 0 in it:
+touch /data/bcount.txt
+echo 0 > /data/bcount.txt
+
+Copy the file aviansolar/new-camera-setup/myservice.service to /etc/systemd/system
+cp myservice.service /etc/systemd/system/myservice.service
+chmod 644 /etc/systemd/system/myservice.service
+
+Then enable the service:
+systemctl enable myservice
+
+
+This is the contents of myservice.service for reference:
+[Unit]
+Description=Example systemd service.
+Requires=docker.service
+After=docker.service
+BindsTo=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /usr/bin/test_service.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+

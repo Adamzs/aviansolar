@@ -1,0 +1,13 @@
+[Unit]
+Description=Example systemd service.
+Requires=docker.service
+After=docker.service
+BindsTo=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /usr/bin/test_service.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
