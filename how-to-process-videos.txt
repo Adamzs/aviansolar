@@ -58,6 +58,8 @@ This will create the annotations.csv file that will be used for annotating.
 5. Add this text to the first line of the file: "directory,bird,cable,panel,plant,car,human,other animal,insect,aircraft,other,unknown,fly over above,fly over reflection,fly through,perch on panel,land on ground,perch in background,collision"
 You can either use a text editor like nano or vi to paste it in, or you can use sed from the command line like this:
 sed -i '1idirectory,bird,cable,panel,plant,car,human,other animal,insect,aircraft,other,unknown,fly over above,fly over reflection,fly through,perch on panel,land on ground,perch in background,collision' annotations.csv
+6. Sort the rows with this command into a new file annotations2.csv: (head -n 1 annotations.csv && tail -n +2 annotations.csv | sort) > annotations2.csv
+7. Then run this to replace annotations.csv with annotations2.csv: mv annotations2.csv annotations.csv
 
 HOWTO Step 2:
 1. First create the date directory in public_html if it doesn't already exist, in our example: 
