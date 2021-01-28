@@ -1,0 +1,12 @@
+Model name: Mobilenet_v2
+Training strategy: Transfer Learning and fine-tuning
+tensorflow version: 2.0.0
+cuda version: 10.0
+
+Before training, remember to change the "path_save" and "data_dir" in the model_train.py
+For training the model, do:
+  python model_train.py
+  
+You might want to run detect_bad_image.py if you encounter any error caused by the empty images, and remove these empty files from your dataset.
+
+You might want to run refine_dataset_name.py if there're '[' or ']' characters in your dataset's images' names.
