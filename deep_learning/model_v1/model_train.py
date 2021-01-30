@@ -14,7 +14,7 @@ import glob
 import tensorflow as tf
 print(sys.getrecursionlimit())
 
-os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
+# os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
 print("TF version:", tf.__version__)
 print("GPU is", "available" if tf.test.is_gpu_available() else "NOT AVAILABLE")
@@ -34,7 +34,7 @@ class file_logger():
         f.write(str_aux)
         f.close()
 
-path_save = '/home/xijun/Argonne/save_model/mobilenetv2_binary_nofinetune_nodataaug_checkpoint_best_val_loss_test'
+path_save = '/home/xijun/Argonne/save_model/mobilenetv2_binary_nofinetune_nodataaug'
 
 if not exists(path_save):
     makedirs(path_save)
